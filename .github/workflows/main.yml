@@ -2,10 +2,9 @@ name: generate pacman game
 
 on:
   schedule:
-    # 12:00 UTC is 06:00 CST (no DST)
     - cron: "0 12 * * *"
-  workflow_dispatch: # Allows manual triggering
-  push: # Runs on every push to the main branch
+  workflow_dispatch:
+  push:
     branches:
       - main
 
@@ -20,21 +19,24 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
+      # RESTORE THE BRAIN
+      - name: restore intelligence cache
+        id: cache-intelligence
+        uses: actions/cache@v4
+        with:
+          path: pacman-intelligence.json
+          # Use a constant key so it always retrieves the latest "brain"
+          key: pacman-intelligence-${{ runner.os }}-${{ github.run_id }}
+          # restore-keys allows it to grab the most recent cache if an exact match isn't found
+          restore-keys: |
+            pacman-intelligence-${{ runner.os }}-
+
       - name: generate pacman-contribution-graph.svg
         uses: slategraydev/pacman-contribution-graph@main
         with:
           github_user_name: ${{ github.repository_owner }}
 
-      # Commit intelligence to the main branch (so GEN increases)
-      - name: commit intelligence
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add pacman-intelligence.json
-          git commit -m "update pacman intelligence" || echo "no changes"
-          git push origin main
-
-      # Push the generated SVG to the output branch
+      # PUSH THE SVG (Cleanly)
       - name: push pacman-contribution-graph.svg to the output branch
         uses: crazy-max/ghaction-github-pages@v3.1.0
         with:
@@ -42,3 +44,6 @@ jobs:
           build_dir: dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Note: actions/cache automatically SAVES the file at the end of the job
+      # if the path 'pacman-intelligence.json' was modified.
