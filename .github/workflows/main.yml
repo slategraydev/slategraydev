@@ -1,7 +1,6 @@
 name: generate pacman game
 on:
   schedule:
-    # This runs at 00:00 every day
     - cron: "0 0 * * *" 
   workflow_dispatch:
   push:
@@ -13,15 +12,20 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
       - name: generate pacman-contribution-graph.svg
         uses: slategraydev/pacman-contribution-graph@main
         with:
           github_user_name: ${{ github.repository_owner }}
-          # This token is standard; it can see your private archived history
+          # Use a PAT if the maze comes back empty
           github_token: ${{ secrets.GITHUB_TOKEN }}
           
+      - name: verify output
+        run: ls -R dist # This will print the contents of dist in the logs to confirm the SVG exists
+
       - name: push to output branch
         uses: crazy-max/ghaction-github-pages@v3.1.0
         with:
