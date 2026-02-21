@@ -1,8 +1,9 @@
 name: generate pacman game
 on:
   schedule:
-    - cron: "0 */24 * * *" # Runs every 24 hours
-  workflow_dispatch: # Allows you to run it manually
+    # This runs at 00:00 every day
+    - cron: "0 0 * * *" 
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -15,7 +16,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: generate pacman-contribution-graph.svg
-        uses: abozanona/pacman-contribution-graph@main
+        uses: slategraydev/pacman-contribution-graph@main
         with:
           github_user_name: ${{ github.repository_owner }}
           # This token is standard; it can see your private archived history
