@@ -17,10 +17,22 @@ jobs:
     timeout-minutes: 5
 
     steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
       - name: generate pacman-contribution-graph.svg
         uses: slategraydev/pacman-contribution-graph@main
         with:
           github_user_name: ${{ github.repository_owner }}
+
+      # Commit intelligence to the main branch (so GEN increases)
+      - name: commit intelligence
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add pacman-intelligence.json
+          git commit -m "update pacman intelligence" || echo "no changes"
+          git push origin main
 
       # Push the generated SVG to the output branch
       - name: push pacman-contribution-graph.svg to the output branch
